@@ -26,7 +26,7 @@ jobs:
           mkdir -p ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
           cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
-          echo "Version: 0.2" >> pi-therm-monitoring/DEBIAN/control
+          echo "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
           cp ./deb-structure/DEBIAN/thermal_camera.service ./pi-therm-monitoring/DEBIAN/thermal_camera.service
 
       - name: Build the deb file
