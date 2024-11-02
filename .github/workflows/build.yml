@@ -22,6 +22,8 @@ jobs:
 
       - name: Settings up files
         run: |
+          ls -al
+          pwd
           mkdir -p pi-therm-monitoring/DEBIAN
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
           cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
