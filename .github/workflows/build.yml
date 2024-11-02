@@ -1,0 +1,59 @@
+on:
+  push:
+    branches:
+      -main
+
+jobs:
+  build:
+    name: "Build the script into deb a file"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt install debhelper
+        
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Settings up files
+        run: |
+          mkdir -p pi-therm-monitoring/DEBIAN
+          cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
+
+      - name: Creating control file
+        run: |
+          echo "Package: helloworld" >> pi-therm-monitoring/DEBIAN/control
+          echo "Version: 0.2" >> pi-therm-monitoring/DEBIAN/control
+          echo "Maintainer: Emilien Marquegnies" >> pi-therm-monitoring/DEBIAN/control
+          echo "Architecture: all" >> pi-therm-monitoring/DEBIAN/control
+          echo "Depends: python3|python3-opencv" >> pi-therm-monitoring/DEBIAN/control
+          echo "Build-Depends: dh-systemd (>=1.5)" >> pi-therm-monitoring/DEBIAN/control
+          echo "Description: Client for thermal monitoring" >> pi-therm-monitoring/DEBIAN/control
+
+      - name: Create service file
+        run: |
+          echo "[Unit]" >> thermal_camera.service
+          echo "Description=Service handling thermal camera" >> thermal_camera.service
+          echo "After=network.target" >> thermal_camera.service
+          echo "" >> thermal_camera.service
+          echo "[Service]" >> thermal_camera.service
+          echo "ExecStart=/usr/bin/python3 /usr/local/bin/tc001v4.2.py" >> thermal_camera.service
+          echo "WorkingDirectory=/usr/local/bin" >> thermal_camera.service
+          echo "StandardOutput=inherit" >> thermal_camera.service
+          echo "StandardError=inherit" >> thermal_camera.service
+          echo "Restart=always" >> thermal_camera.service
+          echo "User=elgem  # Remplace par l'utilisateur qui doit exécuter le service" >> thermal_camera.service
+          echo "" >> thermal_camera.service
+          echo "[Install]" >> thermal_camera.service
+          echo "WantedBy=multi-user.target" >> thermal_camera.service
+
+        
+
+      - name: Build the deb file
+        run: dpkg-deb --build helloworld
+          
+          
