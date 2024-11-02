@@ -32,5 +32,10 @@ jobs:
 
       - name: Build the deb file
         run: dpkg-deb --build pi-therm-monitoring
-          
+
+      - name: Upload .deb package
+        uses: actions/upload-artifact@v2
+        with:
+          name: pi-thermal-monitoring
+          path: pi-therm-monitoring.deb
           
