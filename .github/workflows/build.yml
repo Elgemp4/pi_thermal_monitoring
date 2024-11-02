@@ -1,0 +1,33 @@
+on:
+  push:
+    branches:
+      -main
+
+jobs:
+  build:
+    name: "Build the script into deb a file"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: sudo apt install debhelper
+        
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Settings up files
+        run: |
+          mkdir -p pi-therm-monitoring/DEBIAN
+          cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
+          cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
+          echo "Version: 0.2" >> pi-therm-monitoring/DEBIAN/control
+          cp ./deb-structure/DEBIAN/thermal_camera.service ./pi-therm-monitoring/DEBIAN/thermal_camera.service
+
+      - name: Build the deb file
+        run: dpkg-deb --build thermal-monitoring
+          
+          
