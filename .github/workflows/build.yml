@@ -22,7 +22,7 @@ jobs:
 
       - name: Settings up files
         run: |
-          mkdir -p pi-therm-monitoring/DEBIAN
+          mkdir -p ./pi-therm-monitoring/DEBIAN
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
           cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
           echo "Version: 0.2" >> pi-therm-monitoring/DEBIAN/control
