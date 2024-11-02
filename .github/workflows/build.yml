@@ -28,6 +28,7 @@ jobs:
           cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
           echo "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
           cp ./deb-structure/DEBIAN/thermal_camera.service ./pi-therm-monitoring/DEBIAN/thermal_camera.service
+          cat ./pi-therm-monitoring/DEBIAN/control
 
       - name: Build the deb file
         run: dpkg-deb --build pi-therm-monitoring
