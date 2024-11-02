@@ -30,6 +30,6 @@ jobs:
           cp ./deb-structure/DEBIAN/thermal_camera.service ./pi-therm-monitoring/DEBIAN/thermal_camera.service
 
       - name: Build the deb file
-        run: dpkg-deb --build thermal-monitoring
+        run: dpkg-deb --build pi-therm-monitoring
           
           
