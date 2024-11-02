@@ -3,7 +3,7 @@ Description=Service handling thermal camera
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /usr/local/bin/tc001v4.2.py
+ExecStart=/usr/bin/python3 /usr/local/bin/pi-therm-monitoring/tc001v4.2.py
 WorkingDirectory=/usr/local/bin
 StandardOutput=inherit
 StandardError=inherit
