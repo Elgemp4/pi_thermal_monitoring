@@ -3,7 +3,7 @@ Description=Service handling thermal camera
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /usr/local/bin/pi-therm-monitoring/main.py
+ExecStart=/usr/bin/python3 /usr/local/bin/pi-therm-monitoring/thermal_camera.sh
 WorkingDirectory=/usr/local/bin
 StandardOutput=inherit
 StandardError=inherit
