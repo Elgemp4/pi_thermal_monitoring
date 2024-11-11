@@ -1,4 +1,19 @@
 #!/bin/bash
+
+VENV_DIR=/usr/local/bin/pi-therm-monitoring/venv
+
+# Create the virtual environment
+python3 -m venv $VENV_DIR
+
+# Activate the virtual environment
+. $VENV_DIR/bin/activate
+
+# Install required packages
+$VENV_DIR/bin/pip install -r /usr/local/bin/requirements.txt
+
+# Deactivate the venv
+deactivate
+
 set -e
 
 sudo systemctl enable thermal_camera.service
