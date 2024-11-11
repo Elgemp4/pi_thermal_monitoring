@@ -29,8 +29,11 @@ jobs:
           
           # Copy necessary files
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
-          cp -r ./deb-structure/DEBIAN/ ./pi-therm-monitoring/DEBIAN/
-          echo "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
+          cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
+          cp ./deb-structure/DEBIAN/postinst ./pi-therm-monitoring/DEBIAN/postinst
+          cp ./deb-structure/DEBIAN/prerm ./pi-therm-monitoring/DEBIAN/prerm
+          cat ./pi-therm-monitoring/DEBIAN/control
+          echo -e "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
           cp ./deb-structure/thermal_camera.service ./pi-therm-monitoring/lib/systemd/system/thermal_camera.service
           cat ./pi-therm-monitoring/DEBIAN/control
           ls ./pi-therm-monitoring/DEBIAN/
