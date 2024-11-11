@@ -1,34 +1,37 @@
 on:
   push:
     branches:
-      -main
+      - main
   workflow_dispatch:
 
 jobs:
   build:
-    name: "Build the script into deb a file"
+    name: "Build the script into deb file"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: sudo apt install debhelper
-        
+        run: sudo apt-get update && sudo apt-get install -y debhelper
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
-      - name: Settings up files
+      - name: Setting up files
         run: |
+          # Create necessary directories
           mkdir -p ./pi-therm-monitoring/DEBIAN
-          mkdir -p ./pi-therm-monitoring/etc/systemd/system
           mkdir -p ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
+          mkdir -p ./pi-therm-monitoring/lib/systemd/syste
+          
+          # Copy necessary files
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
-          cp ./deb-structure/DEBIAN/control ./pi-therm-monitoring/DEBIAN/control
-          echo "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
-          cp ./deb-structure/DEBIAN/thermal_camera.service ./pi-therm-monitoring/etc/systemd/system/thermal_camera.service
+          cp ./deb-structure/DEBIAN/* ./pi-therm-monitoring/DEBIAN/*
+          echo "\nVersion: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
+          cp ./deb-structure/thermal_camera.service ./pi-therm-monitoring/lib/systemd/system/thermal_camera.service
 
       - name: Build the deb file
         run: dpkg-deb --build pi-therm-monitoring
@@ -36,11 +39,5 @@ jobs:
       - name: Upload .deb package
         uses: actions/upload-artifact@v4
         with:
-          # Name of the artifact to upload.
-          # Optional. Default is 'artifact'
           name: pi-thermal-monitoring
-      
-          # A file, directory or wildcard pattern that describes what to upload
-          # Required.
-          path: pi-therm-monitoring.deb
-                
+          path: ./pi-therm-monitoring.deb  # Explicitly use the correct path
