@@ -25,7 +25,7 @@ jobs:
           # Create necessary directories
           mkdir -p ./pi-therm-monitoring/DEBIAN
           mkdir -p ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
-          mkdir -p ./pi-therm-monitoring/lib/systemd/syste
+          mkdir -p ./pi-therm-monitoring/lib/systemd/system
           
           # Copy necessary files
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
