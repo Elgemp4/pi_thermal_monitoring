@@ -30,9 +30,10 @@ jobs:
           # Copy necessary files
           cp ./scripts/*.py ./pi-therm-monitoring/usr/local/bin/pi-therm-monitoring/
           cp -r ./deb-structure/DEBIAN/ ./pi-therm-monitoring/DEBIAN/
-          echo "\nVersion: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
+          echo "Version: 0.0" >> ./pi-therm-monitoring/DEBIAN/control
           cp ./deb-structure/thermal_camera.service ./pi-therm-monitoring/lib/systemd/system/thermal_camera.service
           cat ./pi-therm-monitoring/DEBIAN/control
+          ls ./pi-therm-monitoring/DEBIAN/
 
       - name: Build the deb file
         run: dpkg-deb --build pi-therm-monitoring
