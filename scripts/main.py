@@ -5,12 +5,10 @@ from pyvirtualcam import PixelFormat
 
 import cv2
 import pyvirtualcam
-import gui
 import numpy as np
 import argparse
-import time
 import io
-import csv
+
 
 #We need to know if we are running on the Pi, because openCV behaves a little oddly on all the builds!
 #https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
@@ -114,8 +112,8 @@ def convertRawToCelcius(raw_temp):
 
 zones = [Zone("Zone 1", 0, 64, 0, 64), Zone("Zone 2", 0, 64, 64, 128), Zone("Zone 3", 0, 64, 128, 192), Zone("Zone 4", 64, 128, 0, 64), Zone("Zone 5", 128, 172, 128, 172)]
 
-data_write = csv.writer(open('data.csv', 'a'))
-time_for_next_write = time.time()
+#data_write = csv.writer(open('data.csv', 'a'))
+#time_for_next_write = time.time()
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
