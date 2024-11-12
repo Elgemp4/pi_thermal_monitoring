@@ -1,6 +1,11 @@
 #!/bin/bash
 
-VENV_DIR=/usr/local/bin/pi-therm-monitoring/venv
+USERNAME="thermal_monitoring"
+BASE=/usr/local/bin/pi-therm-monitoring
+adduser --system $USERNAME
+
+chmod 774 "$BASE/thermal_camera.sh"
+VENV_DIR=$BASE/venv
 
 # Create the virtual environment
 python3 -m venv $VENV_DIR
