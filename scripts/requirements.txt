@@ -1,2 +1,1 @@
 opencv-python==4.10.0.84
-git+https://github.com/letmaik/pyvirtualcam.git
