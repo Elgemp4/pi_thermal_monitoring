@@ -45,4 +45,12 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pi-thermal-monitoring
-          path: ./pi-therm-monitoring.deb  # Explicitly use the correct path
+          path: ./pi-therm-monitoring.deb
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./pi-therm-monitoring.deb
+          tag_name: latest
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
