@@ -52,5 +52,3 @@ jobs:
           files: ./pi-therm-monitoring.deb
           tag_name: latest
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
