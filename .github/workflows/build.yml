@@ -50,5 +50,4 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./pi-therm-monitoring.deb
-          tag_name: latest
           prerelease: false
