@@ -21,7 +21,7 @@ def is_raspberrypi():
 isPi = is_raspberrypi()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--device", type=int, default=1, help="Video Device number e.g. 0, use v4l2-ctl --list-devices")
+parser.add_argument("--device", type=int, default=0, help="Video Device number e.g. 0, use v4l2-ctl --list-devices")
 args = parser.parse_args()
 	
 if args.device:
