@@ -116,8 +116,9 @@ zones = [Zone("Zone 1", 0, 64, 0, 64), Zone("Zone 2", 0, 64, 64, 128), Zone("Zon
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
-
+	print("Before : ", cap.isOpened())
 	while cap.isOpened():
+		print("Inside : ", cap.isOpened())
 		# Capture frame-by-frame
 		ret, frame = cap.read()
 
