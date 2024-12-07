@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from numpy.core.multiarray import unravel_index
 from pyvirtualcam import PixelFormat
 
 import cv2
@@ -86,12 +85,12 @@ class Zone:
 
 	def find_highest(self):
 		linear_max = self.th_data[...].argmax()
-		row, col = unravel_index(linear_max, self.th_data.shape)
+		row, col = np.unravel_index(linear_max, self.th_data.shape)
 		return (col, row, self.th_data[row, col])
 
 	def find_lowest(self):
 		linear_max = self.th_data[...].argmin()
-		row, col = unravel_index(linear_max, self.th_data.shape)
+		row, col = np.unravel_index(linear_max, self.th_data.shape)
 		return (col, row, self.th_data[row, col])
 
 	def find_average(self):
@@ -143,7 +142,7 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 
 			#for zone in zones:
 			#	gui.draw_zone(image, zone, th_data, scale)
-				
+			print("Frame sent");
 			cam.send(image);
 
 	cap.release()
