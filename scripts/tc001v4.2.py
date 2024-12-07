@@ -1,4 +1,4 @@
-<#!/usr/bin/env python3
+#!/usr/bin/env python3
 '''
 Les Wright 21 June 2023
 https://youtube.com/leslaboratory
