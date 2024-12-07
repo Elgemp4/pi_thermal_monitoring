@@ -9,6 +9,7 @@ import numpy as np
 import argparse
 import io
 
+
 #We need to know if we are running on the Pi, because openCV behaves a little oddly on all the builds!
 #https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
 def is_raspberrypi():
@@ -18,29 +19,13 @@ def is_raspberrypi():
     except Exception: pass
     return False
 
-def create_virtual_cam():
-	import subprocess
-
-	# Command to load v4l2loopback with the desired parameters
-	command = [
-		"sudo", "modprobe", "v4l2loopback",
-		"video_nr=59",
-		'card_label="VirtualCam"'
-	]
-
-	try:
-		subprocess.run(command, check=True)
-		print("v4l2loopback loaded successfully with video_nr=59 and card_label='VirtualCam'")
-	except subprocess.CalledProcessError as e:
-		print(f"Failed to execute modprobe: {e}")
-
 def find_camera_device():
 	for dev_i in range(64):
 		try:
 			with Device.from_id(dev_i) as device:
 				device.open()
 				if("USB Camera" in device.info.card and len(device.info.inputs) > 0 and device.info.buffers[0] == BufferType.VIDEO_CAPTURE):
-					print(f"Found virtual camera at /dev/video{dev_i}")
+					print(f"Found thermal camera at /dev/video{dev_i}")
 					print(f"Device id: {device.info.card}")
 					print(f"Device buff: {device.info.buffers}")
 					print(f"Device inputs: {device.info.inputs}")
@@ -50,6 +35,7 @@ def find_camera_device():
 			pass
 
 	raise Exception("No camera device found")
+
 
 isPi = is_raspberrypi()
 
@@ -150,9 +136,8 @@ zones = [Zone("Zone 1", 0, 64, 0, 64), Zone("Zone 2", 0, 64, 64, 128), Zone("Zon
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
-	print("Before : ", cap.isOpened())
+	#ffmpeg -f v4l2 -i /dev/video59 -c:v libx264 -preset ultrafast -tune zerolatency -g 25 -keyint_min 25 -sc_threshold 0 -hls_time 1 -hls_list_size 3 -hls_flags delete_segments -hls_segment_type mpegts  -f flv rtmp://node.elgem.be/show/stream
 	while cap.isOpened():
-		print("Inside : ", cap.isOpened())
 		# Capture frame-by-frame
 		ret, frame = cap.read()
 
@@ -177,7 +162,6 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 
 			#for zone in zones:
 			#	gui.draw_zone(image, zone, th_data, scale)
-			print("Frame sent");
-			cam.send(image);
+			cam.send(image)
 
 	cap.release()
