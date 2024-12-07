@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
 from pyvirtualcam import PixelFormat
+from linuxpy.video.device import Device, BufferType
 
 import cv2
 import pyvirtualcam
 import numpy as np
 import argparse
 import io
-
 
 #We need to know if we are running on the Pi, because openCV behaves a little oddly on all the builds!
 #https://raspberrypi.stackexchange.com/questions/5100/detect-that-a-python-program-is-running-on-the-pi
@@ -18,6 +18,39 @@ def is_raspberrypi():
     except Exception: pass
     return False
 
+def create_virtual_cam():
+	import subprocess
+
+	# Command to load v4l2loopback with the desired parameters
+	command = [
+		"sudo", "modprobe", "v4l2loopback",
+		"video_nr=59",
+		'card_label="VirtualCam"'
+	]
+
+	try:
+		subprocess.run(command, check=True)
+		print("v4l2loopback loaded successfully with video_nr=59 and card_label='VirtualCam'")
+	except subprocess.CalledProcessError as e:
+		print(f"Failed to execute modprobe: {e}")
+
+def find_camera_device():
+	for dev_i in range(64):
+		try:
+			with Device.from_id(dev_i) as device:
+				device.open()
+				if("USB Camera" in device.info.card and len(device.info.inputs) > 0 and device.info.buffers[0] == BufferType.VIDEO_CAPTURE):
+					print(f"Found virtual camera at /dev/video{dev_i}")
+					print(f"Device id: {device.info.card}")
+					print(f"Device buff: {device.info.buffers}")
+					print(f"Device inputs: {device.info.inputs}")
+					print("--------------------------------")
+					return dev_i
+		except FileNotFoundError:
+			pass
+
+	raise Exception("No camera device found")
+
 isPi = is_raspberrypi()
 
 parser = argparse.ArgumentParser()
@@ -27,9 +60,10 @@ args = parser.parse_args()
 if args.device:
 	dev = args.device
 else:
-	dev = 0
-	
-#init video
+	try:
+		dev = find_camera_device()
+	except Exception as e:
+		dev = 0
 
 width = 256 
 height = 192 
