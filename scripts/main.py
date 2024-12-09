@@ -188,8 +188,8 @@ def onSettingsReceived(settings):
 	measure_each = settings['measure_each']['value']
 	stream_url = settings['stream_url']['value']
 
-def send_temperature_data():
-	pass
+def send_temperature_data(data):
+	conn.sendall(json.dumps({"type": "temperatures", "data": data}).encode())
 
 
 
@@ -238,8 +238,9 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 						(x,y,temp) = zone.find_highest()
 						data[zone.id] = temp
 					print(data)
-					
+
 					next_time_to_send = time.time() + measure_each
+					send_temperature_data(data)
 
 				cam.send(image)
 

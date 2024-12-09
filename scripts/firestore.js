@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { signInWithCustomToken } from "firebase/auth";
-import { getFirestore, collection, getDocs, getDoc, onSnapshot, doc, addDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, getDoc, onSnapshot, doc, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import net from "net";
 import "dotenv/config";
@@ -65,7 +65,10 @@ function listenToSettings(camera){
     });
 }
 
-function sendTemperature(data){
+function sendTemperature(temperatures){
+    const data = {}
+    data["timestamp"] = Timestamp.now();
+    data["temperatures"] = temperatures.data;
     addDoc(collection(db, "/temperatures"), data);
 }
 
@@ -103,8 +106,11 @@ function connectToCamera(){
 
     camera.on('data', (data) => {
         try{
+            data = data.toString("utf8");
+
             const parsedData = JSON.parse(data);
-            if(data.type === "temperature"){
+
+            if(parsedData.type == "temperatures"){
                 sendTemperature(parsedData);
             }
             else{
