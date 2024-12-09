@@ -68,6 +68,7 @@ function listenToSettings(camera){
 function sendTemperature(temperatures){
     const data = {}
     data["timestamp"] = Timestamp.now();
+    data["expiration"] = Timestamp.fromDate(new Date(Date.now() + 1000*60*60*24*150)); // 150 days
     data["temperatures"] = temperatures.data;
     addDoc(collection(db, "/temperatures"), data);
 }
