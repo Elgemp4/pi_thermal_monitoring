@@ -13,6 +13,32 @@ import io
 import socket
 import json
 import os
+import time
+
+class Zone:
+	def __init__(self, id, name, bottom, top, left, right):
+		self.name = name
+		self.id = id
+		self.bottom = min(bottom, top)
+		self.top = max(bottom, top)
+		self.left = min(left, right)
+		self.right = max(left, right)
+
+	def set_th_data(self, th_data):
+		self.th_data = th_data[self.bottom:self.top, self.left:self.right]
+
+	def find_highest(self):
+		linear_max = self.th_data[...].argmax()
+		row, col = np.unravel_index(linear_max, self.th_data.shape)
+		return (col, row, self.th_data[row, col])
+
+	def find_lowest(self):
+		linear_max = self.th_data[...].argmin()
+		row, col = np.unravel_index(linear_max, self.th_data.shape)
+		return (col, row, self.th_data[row, col])
+
+	def find_average(self):
+		return round(self.th_data[...].mean(), 2)
 
 
 #We need to know if we are running on the Pi, because openCV behaves a little oddly on all the builds!
@@ -59,7 +85,7 @@ else:
 	except Exception as e:
 		dev = 0
 
-zone_list = []
+zone_list: list[Zone] = []
 stream_url = ''
 measure_each = -1
 max_temp = -1
@@ -106,30 +132,7 @@ def apply_color_map(colormap_index):
 	return colormap_title, heatmap
 
 
-class Zone:
-	def __init__(self, id, name, bottom, top, left, right):
-		self.name = name
-		self.id = id
-		self.bottom = bottom
-		self.top = top
-		self.left = left
-		self.right = right
 
-	def set_th_data(self, th_data):
-		self.th_data = th_data[self.bottom:self.top, self.left:self.right]
-
-	def find_highest(self):
-		linear_max = self.th_data[...].argmax()
-		row, col = np.unravel_index(linear_max, self.th_data.shape)
-		return (col, row, self.th_data[row, col])
-
-	def find_lowest(self):
-		linear_max = self.th_data[...].argmin()
-		row, col = np.unravel_index(linear_max, self.th_data.shape)
-		return (col, row, self.th_data[row, col])
-
-	def find_average(self):
-		return round(self.th_data[...].mean(), 2)
 
 
 # Converting the raw values to celsius
@@ -173,12 +176,14 @@ def listenForIncommingData():
 	return True
 
 def onZoneReceived(zones: dict):
-	zone_list = []
+	global zone_list
+	zone_list.clear()
 	for key, value in zones.items():
 		zone_list.append(Zone(key,value["name"], value["endY"], value["startY"], value["startX"], value["endX"]))
 
 
 def onSettingsReceived(settings):
+	global max_temp, measure_each, stream_url
 	max_temp = settings['max_temp']['value']
 	measure_each = settings['measure_each']['value']
 	stream_url = settings['stream_url']['value']
@@ -191,12 +196,14 @@ def send_temperature_data():
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
-	
+
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.bind((HOST, PORT))
 		s.listen()
 		conn, addr = s.accept()
 		conn.setblocking(False)
+
+		next_time_to_send = 0
 		while cap.isOpened():
 			if(listenForIncommingData() == False): #If the connection is closed,
 				break
@@ -222,8 +229,18 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 				#apply colormap
 				cmapText, image = apply_color_map(colormap_index)
 
-				#for zone in zones:
-				#	gui.draw_zone(image, zone, th_data, scale)
+				if(measure_each != -1 and next_time_to_send < time.time()):
+					data = {}
+					print("Zones : " + str(zone_list))
+					print("Max temp : " + str(max_temp))
+					for zone in zone_list:
+						zone.set_th_data(th_data)
+						(x,y,temp) = zone.find_highest()
+						data[zone.id] = temp
+					print(data)
+					
+					next_time_to_send = time.time() + measure_each
+
 				cam.send(image)
 
 	cap.release()
