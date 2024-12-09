@@ -2,12 +2,17 @@
 
 from pyvirtualcam import PixelFormat
 from linuxpy.video.device import Device, BufferType
+from dotenv import load_dotenv
+
 
 import cv2
 import pyvirtualcam
 import numpy as np
 import argparse
 import io
+import socket
+import json
+import os
 
 
 #We need to know if we are running on the Pi, because openCV behaves a little oddly on all the builds!
@@ -36,6 +41,9 @@ def find_camera_device():
 
 	raise Exception("No camera device found")
 
+load_dotenv()
+HOST = os.getenv('HOST')
+PORT = int(os.getenv('PORT'))
 
 isPi = is_raspberrypi()
 
@@ -129,39 +137,55 @@ class Zone:
 def convertRawToCelcius(raw_temp):
 	return np.round(((raw_th_data[..., 1].astype(np.uint16) << 8) + raw_th_data[..., 0].astype(np.uint16)) / 64 - 273.15, 2)
 
+
 zones = [Zone("Zone 1", 0, 64, 0, 64), Zone("Zone 2", 0, 64, 64, 128), Zone("Zone 3", 0, 64, 128, 192), Zone("Zone 4", 64, 128, 0, 64), Zone("Zone 5", 128, 172, 128, 172)]
 
-#data_write = csv.writer(open('data.csv', 'a'))
-#time_for_next_write = time.time()
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
-	#ffmpeg -f v4l2 -i /dev/video59 -c:v libx264 -preset ultrafast -tune zerolatency -g 25 -keyint_min 25 -sc_threshold 0 -hls_time 1 -hls_list_size 3 -hls_flags delete_segments -hls_segment_type mpegts  -f flv rtmp://node.elgem.be/show/stream
-	while cap.isOpened():
-		# Capture frame-by-frame
-		ret, frame = cap.read()
+	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+		s.bind((HOST, PORT))
+		s.listen()
+		conn, addr = s.accept()
+		conn.setblocking(False)
+		while cap.isOpened():
+			data = None
+			try:
+				data = conn.recv(1024)
+				messages = data.decode().split('\n')
+				for message in messages:
+					try:
+						print(json.loads(message))
+					except json.JSONDecodeError:
+						pass
+				if not data:
+					break
+			except BlockingIOError:
+				pass
 
-		if ret:
-			im_data,raw_th_data = np.array_split(frame, 2)
-			th_data = convertRawToCelcius(raw_th_data)
+			# Capture frame-by-frame
+			ret, frame = cap.read()
+			if ret:
+				im_data,raw_th_data = np.array_split(frame, 2)
+				th_data = convertRawToCelcius(raw_th_data)
 
-			temp = th_data[96, 128]
-			# Convert the real image to RGB
-			bgr = cv2.cvtColor(im_data, cv2.COLOR_YUV2BGR_YUYV)
-			#Contrast
-			bgr = cv2.convertScaleAbs(bgr, alpha=alpha)#Contrast
+				temp = th_data[96, 128]
+				# Convert the real image to RGB
+				bgr = cv2.cvtColor(im_data, cv2.COLOR_YUV2BGR_YUYV)
+				#Contrast
+				bgr = cv2.convertScaleAbs(bgr, alpha=alpha)#Contrast
 
-			#bicubic interpolate, upscale and blur
-			bgr = cv2.resize(bgr, (scaled_width, scaled_height), interpolation=cv2.INTER_CUBIC)#Scale up!
-			if rad>0:
-				bgr = cv2.blur(bgr,(rad,rad))
+				#bicubic interpolate, upscale and blur
+				bgr = cv2.resize(bgr, (scaled_width, scaled_height), interpolation=cv2.INTER_CUBIC)#Scale up!
+				if rad>0:
+					bgr = cv2.blur(bgr,(rad,rad))
 
 
-			#apply colormap
-			cmapText, image = apply_color_map(colormap_index)
+				#apply colormap
+				cmapText, image = apply_color_map(colormap_index)
 
-			#for zone in zones:
-			#	gui.draw_zone(image, zone, th_data, scale)
-			cam.send(image)
+				#for zone in zones:
+				#	gui.draw_zone(image, zone, th_data, scale)
+				cam.send(image)
 
 	cap.release()
