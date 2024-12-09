@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { signInWithCustomToken } from "firebase/auth";
-import { getFirestore, collection, getDocs, getDoc, onSnapshot, doc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, getDoc, onSnapshot, doc, addDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import net from "net";
 import "dotenv/config";
@@ -44,7 +44,6 @@ function listenToZones(camera){
             const data = doc.data();
             zones[doc.id] = data;
         });
-        console.log(zones);
         writeToCamera(camera, {
             "type": "zones",
             "data": zones
@@ -59,12 +58,15 @@ function listenToSettings(camera){
             const data = doc.data();
             settings[doc.id] = data;
         });
-        console.log(settings);
         writeToCamera(camera, {
             "type": "settings",
             "data": settings
         });
     });
+}
+
+function sendTemperature(data){
+    addDoc(collection(db, "/temperatures"), data);
 }
 
 
@@ -100,8 +102,17 @@ function connectToCamera(){
     });
 
     camera.on('data', (data) => {
-        console.log(`Python script says: ${data}`);
-        
+        try{
+            const parsedData = JSON.parse(data);
+            if(data.type === "temperature"){
+                sendTemperature(parsedData);
+            }
+            else{
+                throw new Error("Unknown data type");
+            }
+        }catch(e){
+            console.log("Error parsing data from camera");
+        } 
     });
 
     camera.on('close', () => {

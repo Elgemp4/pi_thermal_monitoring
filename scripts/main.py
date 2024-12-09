@@ -59,6 +59,12 @@ else:
 	except Exception as e:
 		dev = 0
 
+zone_list = []
+stream_url = ''
+measure_each = -1
+max_temp = -1
+
+
 width = 256 
 height = 192 
 
@@ -101,8 +107,9 @@ def apply_color_map(colormap_index):
 
 
 class Zone:
-	def __init__(self, name, bottom, top, left, right):
+	def __init__(self, id, name, bottom, top, left, right):
 		self.name = name
+		self.id = id
 		self.bottom = bottom
 		self.top = top
 		self.left = left
@@ -138,30 +145,61 @@ def convertRawToCelcius(raw_temp):
 	return np.round(((raw_th_data[..., 1].astype(np.uint16) << 8) + raw_th_data[..., 0].astype(np.uint16)) / 64 - 273.15, 2)
 
 
-zones = [Zone("Zone 1", 0, 64, 0, 64), Zone("Zone 2", 0, 64, 64, 128), Zone("Zone 3", 0, 64, 128, 192), Zone("Zone 4", 64, 128, 0, 64), Zone("Zone 5", 128, 172, 128, 172)]
+def listenForIncommingData():
+	data = None
+	try:
+		data = conn.recv(1024)
+		if not data:
+			return False
+		
+		messages = data.decode().split('\n')
+
+		for message in messages:
+			try:
+				jsonMessage = json.loads(message)
+				match jsonMessage['type']:
+					case 'zones':
+						onZoneReceived(jsonMessage['data'])
+					case 'settings':
+						onSettingsReceived(jsonMessage['data'])
+			except json.JSONDecodeError:
+				print("Error decoding json : " + message)
+				pass
+
+		
+	except BlockingIOError:
+		pass
+
+	return True
+
+def onZoneReceived(zones: dict):
+	zone_list = []
+	for key, value in zones.items():
+		zone_list.append(Zone(key,value["name"], value["endY"], value["startY"], value["startX"], value["endX"]))
+
+
+def onSettingsReceived(settings):
+	max_temp = settings['max_temp']['value']
+	measure_each = settings['measure_each']['value']
+	stream_url = settings['stream_url']['value']
+
+def send_temperature_data():
+	pass
+
+
 
 
 with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
+	
 	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 		s.bind((HOST, PORT))
 		s.listen()
 		conn, addr = s.accept()
 		conn.setblocking(False)
 		while cap.isOpened():
-			data = None
-			try:
-				data = conn.recv(1024)
-				messages = data.decode().split('\n')
-				for message in messages:
-					try:
-						print(json.loads(message))
-					except json.JSONDecodeError:
-						pass
-				if not data:
-					break
-			except BlockingIOError:
-				pass
+			if(listenForIncommingData() == False): #If the connection is closed,
+				break
 
 			# Capture frame-by-frame
 			ret, frame = cap.read()
