@@ -2,7 +2,8 @@ import socket
 from dotenv import load_dotenv
 import os
 import json
-
+import time
+from datetime import datetime, timedelta
 import subprocess
 
 from temperature import Zone
@@ -10,6 +11,7 @@ from temperature import Zone
 class SocketManager:
     zone_list: list[Zone] = []
     stream_url = ''
+    stream_until = None
     measure_each = -1
     max_temp = -1
     firebase_script = None
@@ -72,6 +74,9 @@ class SocketManager:
         self.max_temp = settings['max_temp']['value']
         self.measure_each = settings['measure_each']['value']
         self.stream_url = settings['stream_url']['value']
+        self.stream_until = settings['stream_until']['value']["seconds"]
+
+        print(self.stream_until)
 
     def send_temperature_data(self, data):
         self.conn.sendall(json.dumps({"type": "temperatures", "data": data}).encode())

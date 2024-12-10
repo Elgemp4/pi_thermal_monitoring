@@ -3,7 +3,7 @@
 from pyvirtualcam import PixelFormat
 from temperature import convertRawToCelcius
 from system_utils import find_camera_device
-from firebase import SocketManager
+from firebase_socket import SocketManager
 
 import cv2
 import pyvirtualcam
