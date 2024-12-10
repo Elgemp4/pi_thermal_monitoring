@@ -16,6 +16,11 @@ import pyvirtualcam
 import numpy as np
 import argparse
 import time
+import signal
+import sys
+
+
+
 
 
 
@@ -53,6 +58,13 @@ recording = False
 elapsed = "00:00:00"
 snaptime = "None"
 
+
+def signal_handler(sig, frame):
+	print("\nInterrupt received, exiting gracefully...")
+	cap.release()
+	sys.exit()
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 colormaps = [('Jet', cv2.COLORMAP_JET),
