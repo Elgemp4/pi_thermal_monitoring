@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 
 from pyvirtualcam import PixelFormat
-from linuxpy.video.device import Device, BufferType
-from dotenv import load_dotenv
-
 from temperature import convertRawToCelcius
-
 from system_utils import find_camera_device
-
-
 from firebase import SocketManager
 
 import cv2
@@ -18,11 +12,6 @@ import argparse
 import time
 import signal
 import sys
-
-
-
-
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0, help="Video Device number e.g. 0, use v4l2-ctl --list-devices")
@@ -59,12 +48,12 @@ elapsed = "00:00:00"
 snaptime = "None"
 
 
-def signal_handler(sig, frame):
+def interrupt_handler(sig, frame):
 	print("\nInterrupt received, exiting gracefully...")
 	cap.release()
 	sys.exit()
 
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, interrupt_handler)
 
 
 colormaps = [('Jet', cv2.COLORMAP_JET),

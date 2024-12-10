@@ -1,3 +1,5 @@
+from linuxpy.video.device import Device, BufferType
+
 def find_camera_device():
 	for dev_i in range(64):
 		try:
