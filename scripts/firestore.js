@@ -6,13 +6,8 @@ import { getAuth } from "firebase/auth";
 import net from "net";
 import "dotenv/config";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCCHE7OpbwEze_VZrn-XRtoZhnjA6RhoLU",
+  apiKey: process.env.FIRESTORE_API_KEY,
   authDomain: "dumoulin-thermal-monitoring.firebaseapp.com",
   projectId: "dumoulin-thermal-monitoring",
   storageBucket: "dumoulin-thermal-monitoring.firebasestorage.app",
@@ -80,7 +75,7 @@ function writeToCamera(camera, data){
 
 async function login() {
 
-    const result = await fetch("https://createcustomtoken-l4fnrox4cq-uc.a.run.app", {
+    const result = await fetch(process.env.CREATE_CUSTOM_TOKEN_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -99,7 +94,7 @@ async function login() {
     return true;
 }
 
-function connectToCamera(){
+function connectToCamera() {
     const camera = new net.Socket();
     camera.connect(process.env.PORT, process.env.HOST, () => {
         console.log("Connected to Python script");
@@ -128,4 +123,3 @@ function connectToCamera(){
 
     return camera;
 }
-
