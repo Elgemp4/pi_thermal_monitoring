@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { signInWithCustomToken } from "firebase/auth";
 import { getFirestore, collection, getDocs, getDoc, onSnapshot, doc, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import net from "net";
 import "dotenv/config";
 
@@ -21,6 +22,7 @@ const app = initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 const auth = getAuth(app);
+const functions = getFunctions(app);
 
 const isConnected = await login();
 
@@ -68,6 +70,10 @@ function sendTemperature(temperatures){
     addDoc(collection(db, "/temperatures"), data);
 }
 
+function sendAlert(){
+    const response = await <httpsCallable(functions, "sendAlert")();
+}
+
 
 function writeToCamera(camera, data){
     camera.write(JSON.stringify(data)+"\n", "utf8");
@@ -108,6 +114,9 @@ function connectToCamera() {
 
             if(parsedData.type == "temperatures"){
                 sendTemperature(parsedData);
+            }
+            else if(parsedData.type == "alert"){
+                sendAlert();
             }
             else{
                 throw new Error("Unknown data type");

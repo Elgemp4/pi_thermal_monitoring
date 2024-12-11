@@ -4,6 +4,7 @@ from pyvirtualcam import PixelFormat
 from temperature import convertRawToCelcius
 from system_utils import find_camera_device
 from firebase_socket import SocketManager
+from video_stream import start_stream, stop_stream, is_streaming
 
 import cv2
 import pyvirtualcam
@@ -51,6 +52,8 @@ snaptime = "None"
 def interrupt_handler(sig, frame):
 	print("\nInterrupt received, exiting gracefully...")
 	cap.release()
+	if(is_streaming()):
+		stop_stream()
 	sys.exit()
 
 signal.signal(signal.SIGINT, interrupt_handler)
@@ -77,6 +80,8 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 
 	with SocketManager() as sm:
 		next_time_to_send = time.time()
+
+		sm.send_alert()
 		while cap.isOpened():
 			if(sm.listen_firebase() == False): #If the connection is closed,
 				print("Connection closed")
@@ -102,6 +107,13 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) a
 
 				#apply colormap
 				cmapText, image = apply_color_map(colormap_index)
+				#print("Stream jusqu'à : ", sm.stream_until)
+				#print("Mtn : ", time.time())
+				if(sm.stream_until > time.time() and not is_streaming()):
+					start_stream(sm.stream_url)
+				elif(sm.stream_until < time.time() and is_streaming()):
+					stop_stream()
+
 
 				if(sm.measure_each != -1 and next_time_to_send < time.time()):
 					data = {}
