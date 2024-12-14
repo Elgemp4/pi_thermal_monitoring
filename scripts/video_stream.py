@@ -20,7 +20,7 @@ def start_stream(url):
     "-hls_segment_type", "mpegts",
     "-f", "flv",
     "rtmp://node.elgem.be/show/stream"
-], stdout=subprocess.PIPE)
+], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("Started stream at : ", url)
 
 def stop_stream():

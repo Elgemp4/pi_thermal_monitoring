@@ -75,7 +75,7 @@ def apply_color_map(colormap_index):
 	heatmap = cv2.applyColorMap(bgr, colormap)
 	return colormap_title, heatmap
 
-with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
+with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
 
 	with SocketManager() as sm:

@@ -70,8 +70,9 @@ function sendTemperature(temperatures){
     addDoc(collection(db, "/temperatures"), data);
 }
 
-function sendAlert(){
-    const response = await <httpsCallable(functions, "sendAlert")();
+async function sendAlert() {
+    const response = await httpsCallable(functions, "sendAlert")();
+    console.log("alert sent");
 }
 
 
