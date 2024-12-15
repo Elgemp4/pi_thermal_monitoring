@@ -19,7 +19,9 @@ class SocketManager:
         HOST = os.getenv('HOST')
         PORT = int(os.getenv('PORT'))
 
-        self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), './firestore.js'], stdout=subprocess.PIPE)
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        firestore_path = os.path.join(script_dir, 'firestore.js')
+        self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), firestore_path], stdout=subprocess.PIPE)
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((HOST, PORT))
