@@ -6,6 +6,8 @@ from system_utils import find_camera_device
 from firebase_socket import SocketManager
 from video_stream import start_stream, stop_stream, is_streaming
 
+from temperature import Zone
+
 import cv2
 import pyvirtualcam
 import numpy as np
@@ -80,8 +82,10 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR) as cam:
 
 	with SocketManager() as sm:
 		next_time_to_send = time.time()
-
-		sm.send_alert()
+		time_for_next_alert = 0
+		over_limit = 0
+		all_camera = Zone(0, 0, 256, 192)
+		
 		while cap.isOpened():
 			if(sm.listen_firebase() == False): #If the connection is closed,
 				print("Connection closed")
@@ -105,26 +109,37 @@ with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR) as cam:
 					bgr = cv2.blur(bgr,(rad,rad))
 
 
-				#apply colormap
 				cmapText, image = apply_color_map(colormap_index)
-				#print("Stream jusqu'à : ", sm.stream_until)
-				#print("Mtn : ", time.time())
+
 				if(sm.stream_until > time.time() and not is_streaming()):
 					start_stream(sm.stream_url)
 				elif(sm.stream_until < time.time() and is_streaming()):
 					stop_stream()
 
 
+				all_camera.set_th_data(th_data)
+				(x,y,temp) = all_camera.find_highest()
+				if(temp >= sm.max_temp):
+					over_limit += 1
+				else:
+					over_limit = -1
+					data[all_camera.id] = temp
+
+
+				if(over_limit >= 100):
+					if(time_for_next_alert > time.time()):
+						sm.send_alert()
+						time_for_next_alert = time.time() + 10 #10s before next alert
+
+				
 				if(sm.measure_each != -1 and next_time_to_send < time.time()):
 					data = {}
 					print("Zones : " + str(sm.zone_list))
 					print("Max temp : " + str(sm.max_temp))
-					for zone in sm.zone_list:
-						zone.set_th_data(th_data)
-						(x,y,temp) = zone.find_highest()
-						data[zone.id] = temp
-					print(data)
-
+					for all_camera in sm.zone_list:
+						all_camera.set_th_data(th_data)
+						(x,y,temp) = all_camera.find_highest()
+				
 					next_time_to_send = time.time() + sm.measure_each
 					sm.send_temperature_data(data)
 
