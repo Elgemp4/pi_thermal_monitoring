@@ -63,16 +63,27 @@ function listenToSettings(camera){
 }
 
 function sendTemperature(temperatures){
-    const data = {};
-    data["timestamp"] = Timestamp.now();
-    data["expiration"] = Timestamp.fromDate(new Date(Date.now() + 1000*60*60*24*150)); // 150 days
-    data["temperatures"] = temperatures.data;
-    addDoc(collection(db, "/temperatures"), data);
+    try{
+        const data = {};
+        data["timestamp"] = Timestamp.now();
+        data["expiration"] = Timestamp.fromDate(new Date(Date.now() + 1000*60*60*24*150)); // 150 days
+        data["temperatures"] = temperatures.data;
+        addDoc(collection(db, "/temperatures"), data);
+    }
+    catch(e){
+        console.log("Error sending temperatures to Firestore");
+    }
+    
 }
 
 async function sendAlert() {
-    const response = await httpsCallable(functions, "sendAlert")();
-    console.log("alert sent");
+    try{
+        const response = await httpsCallable(functions, "sendAlert")();
+        console.log("alert sent");
+    }
+    catch(e){
+        console.log("Error sending alert");
+    }
 }
 
 
@@ -81,24 +92,28 @@ function writeToCamera(camera, data){
 }
 
 async function login() {
-
-    const result = await fetch(process.env.CREATE_CUSTOM_TOKEN_URL, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({"rasp_id": "raspberry-pi-1", "secret": process.env.SECRET})
-    })
-
-    const data = await result.json();
-
-    if(data.token === undefined){
+    try{
+        const result = await fetch(process.env.CREATE_CUSTOM_TOKEN_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({"rasp_id": "raspberry-pi-1", "secret": process.env.SECRET})
+        })
+    
+        const data = await result.json();
+    
+        if(data.token === undefined){
+            return false;
+        }
+    
+        const token = data.token;
+        await signInWithCustomToken(auth, token);
+        return true;
+    }
+    catch(e){
         return false;
     }
-
-    const token = data.token;
-    await signInWithCustomToken(auth, token);
-    return true;
 }
 
 function connectToCamera() {

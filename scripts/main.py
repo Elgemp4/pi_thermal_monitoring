@@ -59,6 +59,7 @@ def interrupt_handler(sig, frame):
 	sys.exit()
 
 signal.signal(signal.SIGINT, interrupt_handler)
+signal.signal(signal.SIGTERM, interrupt_handler)
 
 
 colormaps = [('Jet', cv2.COLORMAP_JET),
