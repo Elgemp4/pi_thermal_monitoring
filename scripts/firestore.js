@@ -24,15 +24,21 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 
-const isConnected = await login();
+let isConnected = await login();
 
-if(isConnected){
-    console.log("Connected to Firebase");
-    const camera = connectToCamera();
 
-    listenToZones(camera);
-    listenToSettings(camera);
+while(!isConnected ){
+    console.log("Error connecting to Firebase. Retrying in 1 second");
+    isConnected = await login();
+    await new Promise(resolve => setTimeout(resolve, 1000));
 }
+
+console.log("Connected to Firebase");
+const camera = connectToCamera();
+
+listenToZones(camera);
+listenToSettings(camera);
+
 
 function listenToZones(camera){
     onSnapshot(collection(db, "/zones"), (snapshot) => {
