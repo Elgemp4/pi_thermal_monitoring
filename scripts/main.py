@@ -3,7 +3,7 @@
 from pyvirtualcam import PixelFormat
 from camera_controller import CameraController
 from firebase_socket import SocketManager
-from video_stream import start_stream, stop_stream, is_streaming
+from video_stream_controller import VideoStreamController
 from zone import Zone
 
 import pyvirtualcam
@@ -12,6 +12,7 @@ import signal
 import sys
 
 camera_controller = CameraController()
+stream_controller = VideoStreamController("rtmp://node.elgem.be/show/stream")
 
 next_time_to_send = time.time()
 
@@ -23,19 +24,11 @@ all_camera = Zone("all", "all", 0, 192, 0, 256)
 def cleanly_close_program(sig, frame):
 	print("\nExiting gracefully...")
 	camera_controller.release()
-	if(is_streaming()):
-		stop_stream()
+	stream_controller.stop_stream()
 	sys.exit()
 
 signal.signal(signal.SIGINT, cleanly_close_program)
 signal.signal(signal.SIGTERM, cleanly_close_program)
-	
-
-def handle_stream_state(stream_until : time) -> None:
-	if(stream_until > time.time() and not is_streaming()):
-		start_stream(sm.stream_url)
-	elif(stream_until < time.time() and is_streaming()):
-		stop_stream()
 
 def send_temperature_data(sm : SocketManager, th_data : list) -> None:
 	global next_time_to_send
@@ -82,7 +75,7 @@ try:
 				try:
 					heatmap_image, th_data = camera_controller.get_frame_data()
 
-					handle_stream_state(sm.stream_until)
+					stream_controller.handle_stream_state(sm.stream_until)
 
 					handle_alerts(sm, th_data)
 					

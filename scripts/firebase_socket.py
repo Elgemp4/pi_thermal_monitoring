@@ -49,6 +49,7 @@ class SocketManager:
         try:
             data = self.conn.recv(1024)
             if not data:
+                print("Firebase disconnected, restarting...")
                 self.start_firebase()
                 self.open_socket()
             
