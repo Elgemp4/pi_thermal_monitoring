@@ -77,8 +77,6 @@ class SocketManager:
         self.stream_url = settings['stream_url']['value']
         self.stream_until = settings['stream_until']['value']["seconds"]
 
-        print(self.stream_until)
-
     def send_temperature_data(self, data):
         self.conn.sendall(json.dumps({"type": "temperatures", "data": data}).encode())
 
