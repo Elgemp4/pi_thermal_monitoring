@@ -25,7 +25,7 @@ class VideoStreamController:
         "-hls_flags", "delete_segments",
         "-hls_segment_type", "mpegts",
         "-f", "flv",
-        "rtmp://node.elgem.be/show/stream"
+        url
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("Started stream at : ", url)
 
