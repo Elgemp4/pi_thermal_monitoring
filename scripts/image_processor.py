@@ -1,17 +1,18 @@
 import cv2
+import numpy as np
 
 
 class ImageProcessor:
-    camera_width = 256 
-    camera_height = 192 
+    camera_width : int = 256 
+    camera_height : int = 192 
 
-    scale = 1 #scale multiplier
-    alpha = 1.0 # Contrast control (1.0-3.0)
-    colormap_index = 0
-    font=cv2.FONT_HERSHEY_SIMPLEX
-    dispFullscreen = False
-    rad = 0 #blur radius
-    threshold = 2
+    scale : int = 1 #scale multiplier
+    alpha : float = 1.0 # Contrast control (1.0-3.0)
+    colormap_index : int = 0
+    font : int = cv2.FONT_HERSHEY_SIMPLEX
+    dispFullscreen : bool = False
+    rad : int = 0 #blur radius
+    threshold :int = 2
 
     colormaps = [('Jet', cv2.COLORMAP_JET),
                 ('Hot', cv2.COLORMAP_HOT),
@@ -24,13 +25,13 @@ class ImageProcessor:
                 ('Viridis', cv2.COLORMAP_VIRIDIS),
                 ('Parula', cv2.COLORMAP_PARULA)]
     
-    def get_width(self):
+    def get_width(self) -> int:
         return self.camera_width * self.scale
 
-    def get_height(self):
+    def get_height(self) -> int:
         return self.camera_height * self.scale
 
-    def apply_color_map(self, im_data):
+    def apply_color_map(self, im_data) -> np.ndarray:
         bgr = cv2.cvtColor(im_data, cv2.COLOR_YUV2BGR_YUYV)
         bgr = cv2.convertScaleAbs(bgr, alpha=self.alpha)#Contrast
 

@@ -8,7 +8,6 @@ from image_processor import ImageProcessor
 from temperature import Zone
 
 import pyvirtualcam
-import numpy as np
 import time
 import signal
 import sys

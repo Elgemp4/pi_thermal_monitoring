@@ -16,10 +16,10 @@ class CameraController():
 	def __init__(self):
 		self.image_processor = ImageProcessor()
 
-	def get_width(self):
+	def get_width(self) -> int:
 		return self.image_processor.get_width()
 	
-	def get_height(self):
+	def get_height(self) -> int:
 		return self.image_processor.get_height()
 
 	def _scan_cameras(self) -> int:
@@ -55,7 +55,7 @@ class CameraController():
 		self.cap = cv2.VideoCapture(self.camera_path, cv2.CAP_V4L)
 		self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
 	
-	def handle_camera_reconnect(self):
+	def handle_camera_reconnect(self) -> None:
 		if(os.path.exists(self.camera_path) == False or self.cap.isOpened() == False):
 			self.cap.release()
 			time.sleep(1)
@@ -66,7 +66,7 @@ class CameraController():
 			self.cap.open(self.camera_path, cv2.CAP_V4L)
 			self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
 
-	def get_frame_data(self):
+	def get_frame_data(self) -> tuple[np.ndarray, np.ndarray]:
 		(frame_acquired, frame) = self.cap.read()
 		if not frame_acquired:
 			self.handle_camera_reconnect()
@@ -80,7 +80,7 @@ class CameraController():
 
 		return heatmap_image, th_data
 
-	def release(self):
+	def release(self) -> None:
 		self.cap.release()
 
 	# Converting the raw values to celsius
@@ -92,5 +92,5 @@ class CameraController():
 	# Then we substract 273.15 to convert Kelvin in Celcius
 	# Simplified the equation become : raw_temp / 64 - 273.15
 	# The data is then rounded for ease of use
-	def convertRawToCelcius(self, raw_temp):
+	def convertRawToCelcius(self, raw_temp) -> np.ndarray:
 		return np.round(((raw_temp[..., 1].astype(np.uint16) << 8) + raw_temp[..., 0].astype(np.uint16)) / 64 - 273.15, 2)
