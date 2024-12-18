@@ -12,6 +12,7 @@ class Zone:
 	def set_th_data(self, th_data):
 		self.th_data = th_data[self.bottom:self.top, self.left:self.right]
 
+
 	def find_highest(self):
 		linear_max = self.th_data[...].argmax()
 		row, col = np.unravel_index(linear_max, self.th_data.shape)

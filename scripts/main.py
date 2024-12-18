@@ -15,26 +15,29 @@ import argparse
 import time
 import signal
 import sys
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--device", type=int, default=0, help="Video Device number e.g. 0, use v4l2-ctl --list-devices")
 args = parser.parse_args()
-	
+dev = None	
 if args.device:
 	dev = args.device
 else:
-	try:
-		dev = find_camera_device()
-	except Exception as e:
-		dev = 0
-
+	while(dev == None):
+		try:
+			dev = find_camera_device()
+		except Exception as e:
+			print("Camera not found, retrying in 5 seconds")
+			time.sleep(5)
+camera_path = '/dev/video'+str(dev)
 
 width = 256 
 height = 192 
 
-cap = cv2.VideoCapture('/dev/video'+str(dev), cv2.CAP_V4L)
+cap = cv2.VideoCapture(camera_path, cv2.CAP_V4L)
 cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
-print('/dev/video'+str(dev))
+print(camera_path)
 
 scale = 1 #scale multiplier
 scaled_width = width * scale
@@ -51,15 +54,15 @@ elapsed = "00:00:00"
 snaptime = "None"
 
 
-def interrupt_handler(sig, frame):
-	print("\nInterrupt received, exiting gracefully...")
+def cleanly_close_program(sig, frame):
+	print("\nExiting gracefully...")
 	cap.release()
 	if(is_streaming()):
 		stop_stream()
 	sys.exit()
 
-signal.signal(signal.SIGINT, interrupt_handler)
-signal.signal(signal.SIGTERM, interrupt_handler)
+signal.signal(signal.SIGINT, cleanly_close_program)
+signal.signal(signal.SIGTERM, cleanly_close_program)
 
 
 colormaps = [('Jet', cv2.COLORMAP_JET),
@@ -73,76 +76,89 @@ colormaps = [('Jet', cv2.COLORMAP_JET),
 			 ('Viridis', cv2.COLORMAP_VIRIDIS),
 			 ('Parula', cv2.COLORMAP_PARULA)]
 
-def apply_color_map(colormap_index):
+def apply_color_map(colormap_index, bgr):
 	colormap_title, colormap = colormaps[colormap_index]
 	heatmap = cv2.applyColorMap(bgr, colormap)
 	return colormap_title, heatmap
+	
 
-with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR) as cam:
+with pyvirtualcam.Camera(width, height, 25, fmt=PixelFormat.BGR, print_fps=25) as cam:
 	print(f'Virtual cam started: {cam.device} ({cam.width}x{cam.height} @ {cam.fps}fps)')
 
 	with SocketManager() as sm:
 		next_time_to_send = time.time()
 		time_for_next_alert = 0
 		over_limit = 0
-		all_camera = Zone(0, 0, 256, 192)
+		all_camera = Zone("all", "all", 0, 192, 0, 256)
 		
-		while cap.isOpened():
+		while True:
 			if(sm.listen_firebase() == False): #If the connection is closed,
 				print("Connection closed")
 				break
 
 			# Capture frame-by-frame
 			ret, frame = cap.read()
-			if ret:
-				im_data,raw_th_data = np.array_split(frame, 2)
-				th_data = convertRawToCelcius(raw_th_data)
 
-				temp = th_data[96, 128]
-				# Convert the real image to RGB
-				bgr = cv2.cvtColor(im_data, cv2.COLOR_YUV2BGR_YUYV)
-				#Contrast
-				bgr = cv2.convertScaleAbs(bgr, alpha=alpha)#Contrast
+			if not ret:
+				if(os.path.exists(camera_path) == False or cap.isOpened() == False):
+					print("Camera disconnected, attempting to reconnect in 5 seconds")
+					cap.release()
+					time.sleep(5)
+					cap.open(camera_path, cv2.CAP_V4L)
+					cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
+					continue
+				continue
 
-				#bicubic interpolate, upscale and blur
-				bgr = cv2.resize(bgr, (scaled_width, scaled_height), interpolation=cv2.INTER_CUBIC)#Scale up!
-				if rad>0:
-					bgr = cv2.blur(bgr,(rad,rad))
+			im_data,raw_th_data = np.array_split(frame, 2)
+			th_data = convertRawToCelcius(raw_th_data)
 
+			# Convert the real image to RGB
+			bgr = cv2.cvtColor(im_data, cv2.COLOR_YUV2BGR_YUYV)
+			#Contrast
+			bgr = cv2.convertScaleAbs(bgr, alpha=alpha)#Contrast
 
-				cmapText, image = apply_color_map(colormap_index)
-
-				if(sm.stream_until > time.time() and not is_streaming()):
-					start_stream(sm.stream_url)
-				elif(sm.stream_until < time.time() and is_streaming()):
-					stop_stream()
-
-
-				all_camera.set_th_data(th_data)
-				(x,y,temp) = all_camera.find_highest()
-				if(temp >= sm.max_temp):
-					over_limit += 1
-				else:
-					over_limit = -1
-					data[all_camera.id] = temp
+			#bicubic interpolate, upscale and blur
+			bgr = cv2.resize(bgr, (scaled_width, scaled_height), interpolation=cv2.INTER_CUBIC)#Scale up!
+			if rad>0:
+				bgr = cv2.blur(bgr,(rad,rad))
 
 
-				if(over_limit >= 100):
-					if(time_for_next_alert > time.time()):
-						sm.send_alert()
-						time_for_next_alert = time.time() + 10 #10s before next alert
+			cmapText, image = apply_color_map(colormap_index, bgr)
 
+			if(sm.stream_until > time.time() and not is_streaming()):
+				start_stream(sm.stream_url)
+			elif(sm.stream_until < time.time() and is_streaming()):
+				stop_stream()
+
+
+			all_camera.set_th_data(th_data)
+
+			(x,y,temp) = all_camera.find_highest()
+
+			if(temp >= sm.max_temp):
+				over_limit += 1
+			else:
+				over_limit = -1
+
+
+			if(over_limit >= 100):
+				if(time_for_next_alert > time.time()):
+					sm.send_alert()
+					time_for_next_alert = time.time() + 10 #10s before next alert
+			
+			if(sm.measure_each != -1 and next_time_to_send < time.time()):
+				data = {}
+				print("Zones : " + str(sm.zone_list))
+				print("Max temp : " + str(sm.max_temp))
+				for all_camera in sm.zone_list:
+					all_camera.set_th_data(th_data)
+					(x,y,temp) = all_camera.find_highest()
+			
+				next_time_to_send = time.time() + sm.measure_each
+				sm.send_temperature_data(data)
+
+			cam.send(image)
 				
-				if(sm.measure_each != -1 and next_time_to_send < time.time()):
-					data = {}
-					print("Zones : " + str(sm.zone_list))
-					print("Max temp : " + str(sm.max_temp))
-					for all_camera in sm.zone_list:
-						all_camera.set_th_data(th_data)
-						(x,y,temp) = all_camera.find_highest()
-				
-					next_time_to_send = time.time() + sm.measure_each
-					sm.send_temperature_data(data)
-
-				cam.send(image)
 	cap.release()
+
+

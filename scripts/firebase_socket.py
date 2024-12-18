@@ -21,17 +21,18 @@ class SocketManager:
 
         script_dir = os.path.dirname(os.path.abspath(__file__))
         firestore_path = os.path.join(script_dir, 'firestore.js')
+        print(firestore_path)
+        print(type(firestore_path))
         self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), firestore_path], stdout=subprocess.PIPE)
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((HOST, PORT))
         self.socket.listen()
         print(f"Listening on {HOST}:{PORT}...")
         self.conn, self.addr = self.socket.accept()
         print(f"Connection accepted from {self.addr}")
         self.conn.setblocking(False)
-
-        
 
         return self
 
