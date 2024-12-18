@@ -4,13 +4,14 @@ from pyvirtualcam import PixelFormat
 from camera_controller import CameraController
 from firebase_socket import SocketManager
 from video_stream import start_stream, stop_stream, is_streaming
-from image_processor import ImageProcessor
-from temperature import Zone
+from zone import Zone
 
 import pyvirtualcam
 import time
 import signal
 import sys
+
+camera_controller = CameraController()
 
 next_time_to_send = time.time()
 
@@ -19,10 +20,9 @@ over_limit = 0
 
 all_camera = Zone("all", "all", 0, 192, 0, 256)
 
-
 def cleanly_close_program(sig, frame):
 	print("\nExiting gracefully...")
-	#cap.release() TODO
+	camera_controller.release()
 	if(is_streaming()):
 		stop_stream()
 	sys.exit()
@@ -71,16 +71,13 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 			time_for_next_alert = time.time() + 10
 
 try:
-	camera_controller = CameraController()
 	camera_controller.connect_camera()
 
 	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR) as virtual_camera:
 		print(f'Virtual cam started: {virtual_camera.device} ({virtual_camera.width}x{virtual_camera.height} @ {virtual_camera.fps}fps)')
 		with SocketManager() as sm:
 			while True:
-				if(sm.listen_firebase() == False): #If the connection is closed,
-					print("Connection closed")
-					break #TODO: Reconnect
+				sm.listen_firebase()
 
 				try:
 					heatmap_image, th_data = camera_controller.get_frame_data()
@@ -95,5 +92,8 @@ try:
 				except Exception as e:
 					print(e)
 					pass # Do nothing, just skip this frame
+
+except Exception as e:
+	print(e)
 finally:
 	cleanly_close_program(None, None)

@@ -81,7 +81,8 @@ class CameraController():
 		return heatmap_image, th_data
 
 	def release(self) -> None:
-		self.cap.release()
+		if(self.cap != None):
+			self.cap.release()
 
 	# Converting the raw values to celsius
 	# https://www.eevblog.com/forum/thermal-imaging/infiray-and-their-p2-pro-discussion/200/

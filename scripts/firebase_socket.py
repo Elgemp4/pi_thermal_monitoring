@@ -4,7 +4,7 @@ import os
 import json
 import subprocess
 
-from temperature import Zone
+from zone import Zone
 
 class SocketManager:
     zone_list: list[Zone] = []
@@ -16,25 +16,28 @@ class SocketManager:
 
     def __enter__(self):
         load_dotenv()
-        HOST = os.getenv('HOST')
-        PORT = int(os.getenv('PORT'))
+        self.start_firebase()
+        self.open_socket()
+        return self
 
+    def start_firebase(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         firestore_path = os.path.join(script_dir, 'firestore.js')
-        print(firestore_path)
-        print(type(firestore_path))
         self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), firestore_path], stdout=subprocess.PIPE)
+
+    def open_socket(self):
+        HOST = os.getenv('HOST')
+        PORT = int(os.getenv('PORT'))
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((HOST, PORT))
         self.socket.listen()
+
         print(f"Listening on {HOST}:{PORT}...")
         self.conn, self.addr = self.socket.accept()
-        print(f"Connection accepted from {self.addr}")
         self.conn.setblocking(False)
-
-        return self
+        print(f"Connection accepted from {self.addr}")
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.conn.close()
@@ -46,7 +49,8 @@ class SocketManager:
         try:
             data = self.conn.recv(1024)
             if not data:
-                return False
+                self.start_firebase()
+                self.open_socket()
             
             messages = data.decode().split('\n')
 
@@ -62,8 +66,6 @@ class SocketManager:
                     pass                    
         except BlockingIOError:
             pass
-
-        return True
 
     def _on_zone_received(self, zones: dict):
         self.zone_list.clear()
