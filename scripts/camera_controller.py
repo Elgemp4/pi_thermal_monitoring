@@ -6,8 +6,6 @@ import numpy as np
 
 from image_processor import ImageProcessor
 
-# TODO TODO TODO Handle video stream when camera is disconnected
-
 class CameraController(): 
 	cap : cv2.VideoCapture = None
 	dev : int = None
