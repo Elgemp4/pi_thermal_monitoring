@@ -6,7 +6,9 @@ import numpy as np
 
 from image_processor import ImageProcessor
 
-class CameraController():
+# TODO TODO TODO Handle video stream when camera is disconnected
+
+class CameraController(): 
 	cap : cv2.VideoCapture = None
 	dev : int = None
 	camera_path : str = None
@@ -52,19 +54,16 @@ class CameraController():
 	def connect_camera(self) -> None:
 		self._find_camera_device()
 
-		self.cap = cv2.VideoCapture(self.camera_path, cv2.CAP_V4L)
+		self.cap = cv2.VideoCapture(self.dev, cv2.CAP_V4L)
 		self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
 	
 	def handle_camera_reconnect(self) -> None:
 		if(os.path.exists(self.camera_path) == False or self.cap.isOpened() == False):
 			self.cap.release()
+			self.cap = None
 			time.sleep(1)
-			
-			self.dev = self._find_camera_device()
-			self.camera_path = '/dev/video'+str(self.dev)
 
-			self.cap.open(self.camera_path, cv2.CAP_V4L)
-			self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
+			self.connect_camera()
 
 	def get_frame_data(self) -> tuple[np.ndarray, np.ndarray]:
 		(frame_acquired, frame) = self.cap.read()

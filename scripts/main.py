@@ -66,7 +66,7 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 try:
 	camera_controller.connect_camera()
 
-	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR) as virtual_camera:
+	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR, print_fps=True) as virtual_camera:
 		print(f'Virtual cam started: {virtual_camera.device} ({virtual_camera.width}x{virtual_camera.height} @ {virtual_camera.fps}fps)')
 		with SocketManager() as sm:
 			while True:
