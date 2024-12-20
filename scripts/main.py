@@ -12,7 +12,7 @@ import signal
 import sys
 
 camera_controller = CameraController()
-stream_controller = VideoStreamController("rtmp://node.elgem.be/show/stream")
+stream_controller = VideoStreamController()
 
 next_time_to_send = time.time()
 
@@ -75,13 +75,15 @@ try:
 				try:
 					heatmap_image, th_data = camera_controller.get_frame_data()
 
-					stream_controller.handle_stream_state(sm.stream_until)
-
 					handle_alerts(sm, th_data)
 					
 					send_temperature_data(sm, th_data)
 
 					virtual_camera.send(heatmap_image)
+
+					stream_controller.set_stream_url_if_changed(sm.stream_url)
+					
+					stream_controller.handle_stream_state(sm.stream_until)
 				except Exception as e:
 					print(e)
 					pass # Do nothing, just skip this frame

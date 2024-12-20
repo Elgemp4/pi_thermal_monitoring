@@ -5,9 +5,9 @@ class VideoStreamController:
     _process : subprocess.Popen
     _stream_url : str
 
-    def __init__(self, stream_url):
+    def __init__(self):
         self._process = None
-        self._stream_url = stream_url
+        self._stream_url = None
 
     def _start_stream(self, url) -> None:
         self._process = subprocess.Popen([
@@ -29,7 +29,10 @@ class VideoStreamController:
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("Started stream at : ", url)
 
-    def set_stream_url(self, url) -> None:
+    def set_stream_url_if_changed(self, url) -> None:
+        if(self._stream_url == url):
+            return
+        
         self._stream_url = url
         if(self.is_streaming()):
             self.stop_stream()
