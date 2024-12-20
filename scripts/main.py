@@ -12,7 +12,7 @@ import signal
 import sys
 
 camera_controller = CameraController()
-stream_controller = VideoStreamController("rtmp://node.elgem.be/show/stream")
+stream_controller = VideoStreamController("")
 
 next_time_to_send = time.time()
 
@@ -69,6 +69,7 @@ try:
 	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR) as virtual_camera:
 		print(f'Virtual cam started: {virtual_camera.device} ({virtual_camera.width}x{virtual_camera.height} @ {virtual_camera.fps}fps)')
 		with SocketManager() as sm:
+			stream_controller.set_stream_url(sm.stream_url)
 			while True:
 				sm.listen_firebase()
 
