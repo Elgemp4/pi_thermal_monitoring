@@ -77,7 +77,7 @@ class SocketManager:
     def _on_settings_received(self, settings):
         self.max_temp = settings['max_temp']['value']
         self.measure_each = settings['measure_each']['value']
-        self.stream_url = settings['stream_url']['value']
+        self.stream_url = settings['incoming_url']['value']
         self.stream_until = settings['stream_until']['value']["seconds"]
 
     def send_temperature_data(self, data):

@@ -85,7 +85,6 @@ try:
 				except Exception as e:
 					print(e)
 					pass # Do nothing, just skip this frame
-
 except Exception as e:
 	print(e)
 finally:
