@@ -3,7 +3,7 @@ Description=Service to allow to
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/pi-therm-monitoring/thermal_camera.sh
+ExecStart=/usr/local/bin/pi-therm-monitoring/wifi_reconnexion.sh
 WorkingDirectory=/usr/local/bin
 StandardOutput=inherit
 StandardError=inherit
