@@ -1,13 +1,13 @@
 import subprocess
 import threading
+import time
 from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
 ACCESS_POINT_INTERFACE = "wlan0"
 WIFI_INTERFACE = "wlan1"
-AP_SSID = "MyAccessPoint"
-AP_PORT = 8080
+AP_PORT = 80
 
 # Minimalist HTML template for the web page
 HTML_TEMPLATE = """
@@ -34,7 +34,7 @@ def is_connected(interface=WIFI_INTERFACE):
     try:
         output = subprocess.check_output(["nmcli", "-t", "-f", "DEVICE,STATE", "device"])
         for line in output.decode().splitlines():
-            if interface in line and "wlan1:connected" in line:
+            if interface in line and f"{interface}:connected" in line:
                 return True
         return False
     except subprocess.CalledProcessError:
@@ -45,29 +45,33 @@ def connect_to_wifi(ssid, password):
     try:
         subprocess.run(["nmcli", "dev", "wifi", "connect", ssid, "password", password, "ifname", WIFI_INTERFACE], check=True)
         print(f"Connected to Wi-Fi network '{ssid}'. Stopping access point...")
-        stop_access_point(ACCESS_POINT_INTERFACE)
+        stop_access_point()
     except subprocess.CalledProcessError:
         print(f"Failed to connect to Wi-Fi network '{ssid}'.")
 
-def start_access_point(interface=ACCESS_POINT_INTERFACE, ssid=AP_SSID):
-    """Start an access point using Network Manager."""
+def start_access_point():
     try:
         subprocess.run(["nmcli", "con", "up", "AP"], check=True)
-        print(f"Access point '{ssid}' started on {interface}.")
+        print(f"Access point started on {ACCESS_POINT_INTERFACE}.")
     except subprocess.CalledProcessError:
-        print(f"Failed to start access point on {interface}.")
+        print(f"Failed to start access point on {ACCESS_POINT_INTERFACE}.")
 
-def stop_access_point(interface=ACCESS_POINT_INTERFACE):
-    """Stop the access point."""
+def stop_access_point():
     try:
         subprocess.run(["nmcli", "connection", "down", "AP"], check=True)
-        print(f"Access point stopped on {interface}.")
+        print(f"Access point stopped on {ACCESS_POINT_INTERFACE}.")
     except subprocess.CalledProcessError:
-        print(f"Failed to stop access point on {interface}.")
+        print(f"Failed to stop access point on {ACCESS_POINT_INTERFACE}.")
+
+def monitor_wifi_connection():
+    while True:
+        if not is_connected(WIFI_INTERFACE) and not is_connected(ACCESS_POINT_INTERFACE):
+            print("Wi-Fi disconnected. Starting access point...")
+            start_access_point()
+        time.sleep(10)  # Check every 10 seconds
 
 @app.route("/", methods=["GET", "POST"])
 def wifi_config():
-    """Serve the Wi-Fi configuration page and handle form submission."""
     if request.method == "POST":
         ssid = request.form.get("ssid")
         password = request.form.get("password")
@@ -81,12 +85,7 @@ def wifi_config():
     return render_template_string(HTML_TEMPLATE)
 
 if __name__ == "__main__":
-    if not is_connected(WIFI_INTERFACE):
-        print("Wi-Fi not connected. Starting access point...")
-        start_access_point(ACCESS_POINT_INTERFACE, AP_SSID)
-
-        # Start the Flask server
-        print(f"Starting Flask server on {AP_SSID}:{AP_PORT}")
-        app.run(host="0.0.0.0", port=AP_PORT)
-    else:
-        print("Wi-Fi is already connected. No action needed.")
+    # Start the Flask server
+    print(f"Starting Flask server")
+    threading.Thread(target=lambda: app.run(host="10.42.0.1", port=AP_PORT)).start()
+    monitor_wifi_connection()
