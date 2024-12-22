@@ -34,7 +34,7 @@ def is_connected(interface=WIFI_INTERFACE):
     try:
         output = subprocess.check_output(["nmcli", "-t", "-f", "DEVICE,STATE", "device"])
         for line in output.decode().splitlines():
-            if interface in line and "connected" in line:
+            if interface in line and "wlan1:connected" in line:
                 return True
         return False
     except subprocess.CalledProcessError:
@@ -52,9 +52,7 @@ def connect_to_wifi(ssid, password):
 def start_access_point(interface=ACCESS_POINT_INTERFACE, ssid=AP_SSID):
     """Start an access point using Network Manager."""
     try:
-        subprocess.run(["nmcli", "connection", "add", "type", "wifi", "ifname", interface, "con-name", "Hotspot", "ssid", ssid], check=True)
-        subprocess.run(["nmcli", "connection", "modify", "Hotspot", "802-11-wireless.mode", "ap", "802-11-wireless.band", "bg", "ipv4.method", "shared"], check=True)
-        subprocess.run(["nmcli", "connection", "up", "Hotspot"], check=True)
+        subprocess.run(["nmcli", "con", "up", "AP"], check=True)
         print(f"Access point '{ssid}' started on {interface}.")
     except subprocess.CalledProcessError:
         print(f"Failed to start access point on {interface}.")
@@ -62,7 +60,7 @@ def start_access_point(interface=ACCESS_POINT_INTERFACE, ssid=AP_SSID):
 def stop_access_point(interface=ACCESS_POINT_INTERFACE):
     """Stop the access point."""
     try:
-        subprocess.run(["nmcli", "connection", "down", "Hotspot"], check=True)
+        subprocess.run(["nmcli", "connection", "down", "AP"], check=True)
         print(f"Access point stopped on {interface}.")
     except subprocess.CalledProcessError:
         print(f"Failed to stop access point on {interface}.")
