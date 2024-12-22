@@ -85,6 +85,7 @@ def wifi_config():
     return render_template_string(HTML_TEMPLATE)
 
 if __name__ == "__main__":
+    time.sleep(60) #Sleep for 60 seconds to give time to the network manager to start and connect to the network
     # Start the Flask server
     print(f"Starting Flask server")
     threading.Thread(target=lambda: app.run(host="10.42.0.1", port=AP_PORT)).start()

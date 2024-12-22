@@ -3,3 +3,5 @@ set -e
 
 sudo systemctl stop thermal_camera.service
 sudo systemctl disable thermal_camera.service
+sudo systemctl stop wifi_reconnexion.service
+sudo systemctl disable wifi_reconnexion.service

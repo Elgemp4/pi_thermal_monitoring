@@ -41,6 +41,7 @@ jobs:
           cat ./pi-therm-monitoring/DEBIAN/control
           echo -e "Version: ${{ env.RELEASE_NUMBER }}" >> ./pi-therm-monitoring/DEBIAN/control
           cp ./deb-structure/thermal_camera.service ./pi-therm-monitoring/lib/systemd/system/thermal_camera.service
+          cp ./deb-structure/wifi_reconnexion.sh ./pi-therm-monitoring/lib/systemd/system/wifi_reconnexion.sh
           cat ./pi-therm-monitoring/DEBIAN/control
           ls ./pi-therm-monitoring/DEBIAN/
 

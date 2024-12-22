@@ -24,3 +24,5 @@ set -e
 
 sudo systemctl enable thermal_camera.service
 sudo systemctl start thermal_camera.service
+sudo systemctl enable wifi_reconnexion.service
+sudo systemctl start wifi_reconnexion.service
