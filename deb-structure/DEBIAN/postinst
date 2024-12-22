@@ -5,6 +5,7 @@ BASE=/usr/local/bin/pi-therm-monitoring
 adduser --system $USERNAME
 
 chmod 774 "$BASE/thermal_camera.sh"
+chmod 774 "$BASE/wifi_reconnexion.sh"
 VENV_DIR=$BASE/venv
 
 # Create the virtual environment
