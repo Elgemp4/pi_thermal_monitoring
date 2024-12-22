@@ -67,6 +67,8 @@ def stop_access_point():
         print(f"Failed to stop access point on {ACCESS_POINT_INTERFACE}.")
 
 def monitor_wifi_connection():
+    global ap_thread
+
     while True:
         if not is_connected(WIFI_INTERFACE) and not is_connected(ACCESS_POINT_INTERFACE):
             print("Wi-Fi disconnected. Starting access point...")
@@ -75,8 +77,9 @@ def monitor_wifi_connection():
             ap_thread = threading.Thread(target=lambda: app.run(host="10.42.0.1", port=AP_PORT))
             ap_thread.start()
         elif is_connected(WIFI_INTERFACE) and is_connected(ACCESS_POINT_INTERFACE):
-            stop_access_point()
-            ap_thread.join()
+            if(ap_thread != None):
+                stop_access_point()
+                ap_thread.join()
         time.sleep(10)  # Check every 10 seconds
 
 @app.route("/", methods=["GET", "POST"])
