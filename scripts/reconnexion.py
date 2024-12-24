@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 ACCESS_POINT_INTERFACE = "wlan0"
 WIFI_INTERFACE = "wlan1"
+connection_name = "preconfigured"
 AP_PORT = 80
 
 ap_thread : threading.Thread = None
@@ -45,7 +46,21 @@ def is_connected(interface=WIFI_INTERFACE):
 def connect_to_wifi(ssid, password):
     """Connect to a Wi-Fi network."""
     try:
-        subprocess.run(["nmcli", "dev", "wifi", "connect", ssid, "password", password, "ifname", WIFI_INTERFACE], check=True)
+        subprocess.run([
+            "nmcli", "connection", "modify", connection_name,
+            "wifi.ssid", ssid
+        ], check=True)
+
+        subprocess.run([
+            "nmcli", "connection", "modify", connection_name,
+            "wifi-sec.psk", password
+        ], check=True)
+
+        subprocess.run([
+            "nmcli", "connection", "up", connection_name
+        ], check=True)
+
+
         print(f"Connected to Wi-Fi network '{ssid}'. Stopping access point...")
         stop_access_point()
         ap_thread.join()
