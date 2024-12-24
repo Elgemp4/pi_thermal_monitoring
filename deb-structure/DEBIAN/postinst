@@ -21,7 +21,7 @@ python3 -m venv $VENV_DIR
 $VENV_DIR/bin/pip install -r /usr/local/bin/pi-therm-monitoring/requirements.txt
 cd /usr/local/bin/pi-therm-monitoring/
 npm install
-# Deactivate the venv
+# Deactivate the venv update test
 deactivate
 
 set -e
