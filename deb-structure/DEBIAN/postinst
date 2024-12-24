@@ -4,8 +4,11 @@ USERNAME="thermal_monitoring"
 BASE=/usr/local/bin/pi-therm-monitoring
 adduser --system $USERNAME
 
+sudo echo "*/1 * * * * root $BASE/update.sh" > /etc/cron.d/thermal_camera
+
 chmod 774 "$BASE/thermal_camera.sh"
 chmod 774 "$BASE/wifi_reconnexion.sh"
+chmod 774 "$BASE/update.sh"
 VENV_DIR=$BASE/venv
 
 # Create the virtual environment
@@ -22,8 +25,6 @@ npm install
 deactivate
 
 set -e
-
-sudo echo "*/1 * * * * root /usr/local/bin/pi-therm-monitoring/update.sh" > /etc/cron.d/thermal_camera
 
 sudo systemctl enable thermal_camera.service
 sudo systemctl start thermal_camera.service
