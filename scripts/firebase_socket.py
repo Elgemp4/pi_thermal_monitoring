@@ -83,5 +83,5 @@ class SocketManager:
     def send_temperature_data(self, data):
         self.conn.sendall(json.dumps({"type": "temperatures", "data": data}).encode())
 
-    def send_alert(self):
-        self.conn.sendall(json.dumps({"type": "alert"}).encode())
+    def send_alert(self, temperature):
+        self.conn.sendall(json.dumps({"type": "alert", "data": {"temperature" : temperature}}).encode())

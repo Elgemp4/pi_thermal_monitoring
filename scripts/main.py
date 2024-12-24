@@ -52,7 +52,7 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 	all_camera.set_th_data(th_data)
 
 	(x,y,temp) = all_camera.find_highest()
-	print(temp)
+	
 	if(temp >= sm.max_temp and sm.max_temp != -1):
 		over_limit += 1
 	else:
@@ -60,7 +60,7 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 
 	if(over_limit >= 5):
 		if(time_for_next_alert < time.time()):
-			sm.send_alert()
+			sm.send_alert(temp)
 			time_for_next_alert = time.time() + 10
 
 try:

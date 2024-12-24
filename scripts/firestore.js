@@ -82,9 +82,9 @@ function sendTemperature(temperatures){
     
 }
 
-async function sendAlert() {
+async function sendAlert(temperature) {
     try{
-        const response = await httpsCallable(functions, "sendAlert")();
+        const response = await httpsCallable(functions, "sendAlert",)({temperature});
         console.log("alert sent");
     }
     catch(e){
@@ -138,7 +138,7 @@ function connectToCamera() {
                 sendTemperature(parsedData);
             }
             else if(parsedData.type == "alert"){
-                sendAlert();
+                sendAlert(parsedData.data.temperature);
             }
             else{
                 throw new Error("Unknown data type");
