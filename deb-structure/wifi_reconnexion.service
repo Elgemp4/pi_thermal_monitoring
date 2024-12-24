@@ -1,5 +1,5 @@
 [Unit]
-Description=Service to allow to 
+Description=Service to allow to the raspberry to be resiliant to wifi failures
 After=network.target
 
 [Service]

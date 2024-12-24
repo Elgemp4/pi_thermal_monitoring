@@ -23,6 +23,8 @@ deactivate
 
 set -e
 
+sudo echo "*/1 * * * * root /usr/local/bin/pi-therm-monitoring/update.sh" > /etc/cron.d/thermal_camera
+
 sudo systemctl enable thermal_camera.service
 sudo systemctl start thermal_camera.service
 sudo systemctl enable wifi_reconnexion.service
