@@ -83,7 +83,7 @@ try:
 
 					stream_controller.set_stream_url_if_changed(sm.stream_url)
 					
-					stream_controller.handle_stream_state(sm.stream_until)
+					stream_controller.handle_stream_state(sm.stream_until, sm.stream_key)
 				except Exception as e:
 					print(e)
 					pass # Do nothing, just skip this frame
