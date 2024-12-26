@@ -30,18 +30,26 @@ def cleanly_close_program(sig, frame):
 signal.signal(signal.SIGINT, cleanly_close_program)
 signal.signal(signal.SIGTERM, cleanly_close_program)
 
-def send_temperature_data(sm : SocketManager, th_data : list) -> None:
+def handle_temperature_data(sm : SocketManager, th_data : list) -> None:
 	global next_time_to_send
+
+	for zone in sm.zone_list:
+		zone.set_th_data(th_data)
+		zone.compute_period()
 
 	if(sm.measure_each != -1 and next_time_to_send < time.time()):
 		data = {}
 		print("Sending temperature data")
 		for zone in sm.zone_list:
-			zone.set_th_data(th_data)
-			(x,y,temp) = zone.find_highest()
-			data[zone.id] = temp
+			data[zone.id] = {
+				"avg": zone.get_period_average(),
+				"max": zone.get_period_highest(),
+				"min": zone.get_period_lowest()
+			}
+			zone.reset_period()
 	
 		next_time_to_send = time.time() + sm.measure_each
+
 		sm.send_temperature_data(data)
 
 def handle_alerts(sm : SocketManager, th_data : list) -> None:
@@ -77,7 +85,7 @@ try:
 
 					handle_alerts(sm, th_data)
 					
-					send_temperature_data(sm, th_data)
+					handle_temperature_data(sm, th_data)
 
 					virtual_camera.send(heatmap_image)
 
