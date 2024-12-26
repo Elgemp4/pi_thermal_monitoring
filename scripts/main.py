@@ -69,7 +69,7 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 	if(over_limit >= 5):
 		if(time_for_next_alert < time.time()):
 			sm.send_alert(temp)
-			time_for_next_alert = time.time() + 10
+			time_for_next_alert = time.time() + 30
 
 try:
 	camera_controller.connect_camera()
