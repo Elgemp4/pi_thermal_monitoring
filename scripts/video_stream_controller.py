@@ -29,7 +29,7 @@ class VideoStreamController:
         "-hls_segment_type", "mpegts",
         "-f", "flv",
         url_with_key
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    ])
         print("Started stream at : ", url)
 
     def set_stream_url_if_changed(self, url) -> None:

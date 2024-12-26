@@ -81,6 +81,10 @@ try:
 				sm.listen_firebase()
 
 				try:
+
+					if(camera_controller.available_at is None or camera_controller.available_at > time.time()):
+						continue;
+
 					heatmap_image, th_data = camera_controller.get_frame_data()
 
 					handle_alerts(sm, th_data)

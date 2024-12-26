@@ -10,6 +10,7 @@ class CameraController():
 	cap : cv2.VideoCapture = None
 	dev : int = None
 	camera_path : str = None
+	available_at: time = None
 
 	image_processor : ImageProcessor
 
@@ -54,6 +55,7 @@ class CameraController():
 
 		self.cap = cv2.VideoCapture(self.dev, cv2.CAP_V4L)
 		self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0.0)
+		self.available_at = time.time() + 5
 	
 	def handle_camera_reconnect(self) -> None:
 		if(os.path.exists(self.camera_path) == False or self.cap.isOpened() == False):
