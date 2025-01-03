@@ -22,6 +22,7 @@ thread = None
 next_time_to_send = time.time()
 
 time_for_next_alert = 0
+time_for_next_log = 0
 over_limit = 0
 
 all_camera = Zone("all", "all", 0, 192, 0, 256)
@@ -87,32 +88,37 @@ def get_logs(service_name, lines=10000):
 		return '\n'.join(logs)
 	except Exception as e:
 		return "Error while getting logs"
+	
+	
     
-def listen_for_logs(sm: SocketManager, stop_event: threading.Event):
-	while not stop_event.is_set():
-		try:
-			sm.listen_firebase()
-			if(sm.output_logs):
-				sm.send_log(get_logs("thermal_camera.service"))
-		except Exception as e:	
-			print(e)
-			pass
+def listen_for_logs(sm: SocketManager):
+	global time_for_next_log
 
-		stop_event.wait(10)
+	if(time_for_next_log > time.time()):
+		return
+	
+	try:
+		if(sm.output_logs):
+			sm.send_log(get_logs("thermal_camera.service"))
+	except Exception as e:	
+		print(e)
 
+	time_for_next_log = time.time() + 10
 try:
 	
 
 	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR) as virtual_camera:
 		print(f'Virtual cam started: {virtual_camera.device} ({virtual_camera.width}x{virtual_camera.height} @ {virtual_camera.fps}fps)')
 		with SocketManager() as sm:
-			thread = threading.Thread(target=listen_for_logs, args=(sm, stop_event))
-			thread.start()
+			#thread = threading.Thread(target=listen_for_logs, args=(sm, stop_event))
+			#thread.start()
 			camera_controller.connect_camera()
 			while True:
 				sm.listen_firebase()
 
 				try:
+					listen_for_logs(sm)
+
 					if(camera_controller.available_at is None or camera_controller.available_at > time.time()):
 						continue;
 
