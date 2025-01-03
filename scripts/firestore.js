@@ -144,7 +144,7 @@ function connectToCamera() {
     camera.on('data', (data) => {
         try{
             data = data.toString("utf8");
-            print("data utf8 : " + data);
+            console.log("data utf8 : " + data);
             const parsedData = JSON.parse(data);
 
             if(parsedData.type == "temperatures"){
@@ -154,7 +154,7 @@ function connectToCamera() {
                 sendAlert(parsedData.data.temperature);
             }
             else if(parsedData.type == "log"){
-                print("logging : " + parsedData.data);
+                console.log("logging : " + parsedData.data);
                 sendLog(parsedData.data);
             }
             else{
