@@ -81,12 +81,10 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 
 def get_logs(service_name, lines=10000):
 	try:
-		services_command = ['systemctl', 'list-units', '--type=service', '--no-pager']
-		services_result = subprocess.run(log_command, capture_output=True, text=True)
 		log_command = ['journalctl', '-u', service_name, '--no-pager']
-		log_result = subprocess.run(services_command, capture_output=True, text=True)
+		log_result = subprocess.run(log_command, capture_output=True, text=True)
 		logs = log_result.stdout.splitlines()[:lines]
-		return services_result + '\n'.join(logs)
+		return '\n'.join(logs)
 	except Exception as e:
 		return "Error while getting logs"
     
@@ -116,9 +114,6 @@ try:
 				sm.listen_firebase()
 
 				try:
-					if(sm.output_logs):
-						sm.send_log(get_logs("abrtd.service"))
-
 					if(camera_controller.available_at is None or camera_controller.available_at > time.time()):
 						continue;
 
