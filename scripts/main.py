@@ -82,7 +82,9 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 
 def get_logs(service_name, lines=10000):
 	try:
-		command = ['journalctl', '-u', service_name, '--no-pager']
+		#command = ['journalctl', '-u', service_name, '--no-pager']
+		#systemctl list-units --type=service --no-pager
+		command = ['systemctl', 'list-units', '--type=service', '--no-pager']
 		result = subprocess.run(command, capture_output=True, text=True)
 		logs = result.stdout.splitlines()[:lines]  # Limite à `lines` lignes
 		return '\n'.join(logs)
@@ -99,7 +101,7 @@ def listen_for_logs(sm: SocketManager):
 	
 	try:
 		if(sm.output_logs):
-			#sm.send_log(get_logs("thermal_camera.service"))
+			sm.send_log(get_logs("thermal_camera.service"))
 			sm.send_log("Connected !")
 	except Exception as e:	
 		print(e)
