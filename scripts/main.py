@@ -101,10 +101,16 @@ def listen_for_logs(sm: SocketManager):
 	
 	try:
 		if(sm.output_logs):
-			sm.send_log(get_logs("thermal_camera.service"))
-			sm.send_log("Connected !")
+			sm.send_log("Connected")
 	except Exception as e:	
 		print(e)
+
+	try:
+		if(sm.output_logs):
+			sm.send_log("test : " + get_logs("thermal_camera.service"))
+	except Exception as e:	
+		print(e)
+
 
 	time_for_next_log = time.time() + 10
 
