@@ -110,7 +110,6 @@ try:
 			thread.start()
 			camera_controller.connect_camera()
 			while True:
-				print("Looping")
 				sm.listen_firebase()
 
 				try:

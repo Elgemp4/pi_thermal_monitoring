@@ -97,7 +97,6 @@ async function sendLog(log) {
         const data = {};
         data["timestamp"] = Timestamp.now();
         data["log"] = log;
-        console.log(log);
         addDoc(collection(db, "/logs"), data);
     }
     catch(e){
@@ -155,7 +154,6 @@ function connectToCamera() {
                 sendAlert(parsedData.data.temperature);
             }
             else if(parsedData.type == "log"){
-                console.log("Log received");
                 sendLog(parsedData.data);
             }
             else{
