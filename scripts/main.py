@@ -82,7 +82,7 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 
 def get_logs(service_name, lines=10000):
 	try:
-		command = ['journalctl', '-u', 'thermal_camera.service', '--no-pager']
+		command = ['sudo', 'journalctl', '-u', 'thermal_camera.service', '--no-pager']
 		#systemctl list-units --type=service --no-pager
 		#command = ['systemctl', 'list-units', '--type=service', '--no-pager']
 		result = subprocess.run(command, capture_output=True, text=True)
