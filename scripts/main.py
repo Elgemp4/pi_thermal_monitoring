@@ -10,9 +10,14 @@ import pyvirtualcam
 import time
 import signal
 import sys
+import subprocess
+import threading
 
 camera_controller = CameraController()
 stream_controller = VideoStreamController()
+
+stop_event = threading.Event()
+thread = None
 
 next_time_to_send = time.time()
 
@@ -25,6 +30,9 @@ def cleanly_close_program(sig, frame):
 	print("\nExiting gracefully...")
 	camera_controller.release()
 	stream_controller.stop_stream()
+	if(thread is not None):
+		stop_event.set()
+		thread.join()
 	sys.exit()
 
 signal.signal(signal.SIGINT, cleanly_close_program)
@@ -71,16 +79,43 @@ def handle_alerts(sm : SocketManager, th_data : list) -> None:
 			sm.send_alert(temp)
 			time_for_next_alert = time.time() + 30
 
+def get_logs(service_name, lines=10000):
+	try:
+		command = ['journalctl', '-u', service_name, '--no-pager']
+		result = subprocess.run(command, capture_output=True, text=True)
+		logs = result.stdout.splitlines()[:lines]  # Limite à `lines` lignes
+		return '\n'.join(logs)
+	except Exception as e:
+		return "Error while getting logs"
+    
+def listen_for_logs(sm: SocketManager, stop_event: threading.Event):
+	while not stop_event.is_set():
+		try:
+			sm.listen_firebase()
+			if(sm.output_logs):
+				sm.send_log(get_logs("thermal_camera.service"))
+		except Exception as e:	
+			print(e)
+			pass
+
+		stop_event.wait(10)
+
 try:
-	camera_controller.connect_camera()
+	
 
 	with pyvirtualcam.Camera(camera_controller.get_width(), camera_controller.get_height(), 25, fmt=PixelFormat.BGR) as virtual_camera:
 		print(f'Virtual cam started: {virtual_camera.device} ({virtual_camera.width}x{virtual_camera.height} @ {virtual_camera.fps}fps)')
 		with SocketManager() as sm:
+			thread = threading.Thread(target=listen_for_logs, args=(sm, stop_event))
+			thread.start()
+			camera_controller.connect_camera()
 			while True:
+				print("Looping")
 				sm.listen_firebase()
 
 				try:
+					if(sm.output_logs):
+						sm.send_log(get_logs("abrtd.service"))
 
 					if(camera_controller.available_at is None or camera_controller.available_at > time.time()):
 						continue;

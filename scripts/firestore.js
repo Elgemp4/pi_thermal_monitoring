@@ -92,6 +92,20 @@ async function sendAlert(temperature) {
     }
 }
 
+async function sendLog(log) {
+    try{
+        const data = {};
+        data["timestamp"] = Timestamp.now();
+        data["log"] = log;
+        console.log(log);
+        addDoc(collection(db, "/logs"), data);
+    }
+    catch(e){
+        console.error(e);
+        console.log("Error sending logs to Firestore");
+    }
+}
+
 
 function writeToCamera(camera, data){
     camera.write(JSON.stringify(data)+"\n", "utf8");
@@ -139,6 +153,10 @@ function connectToCamera() {
             }
             else if(parsedData.type == "alert"){
                 sendAlert(parsedData.data.temperature);
+            }
+            else if(parsedData.type == "log"){
+                console.log("Log received");
+                sendLog(parsedData.data);
             }
             else{
                 throw new Error("Unknown data type");

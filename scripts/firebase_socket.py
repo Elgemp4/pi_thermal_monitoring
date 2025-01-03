@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import json
 import subprocess
+import base64
 
 from zone import Zone
 
@@ -14,6 +15,7 @@ class SocketManager:
     max_temp = -1
     firebase_script = None
     stream_key = None
+    output_logs = False
 
     def __enter__(self):
         load_dotenv()
@@ -24,7 +26,7 @@ class SocketManager:
     def start_firebase(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         firestore_path = os.path.join(script_dir, 'firestore.js')
-        self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), firestore_path], stdout=subprocess.PIPE)
+        self.firebase_script = subprocess.Popen([os.getenv("NODE_PATH"), firestore_path])
 
     def open_socket(self):
         HOST = os.getenv('HOST')
@@ -81,9 +83,15 @@ class SocketManager:
         self.stream_url = settings['incoming_url']['value']
         self.stream_until = settings['stream_until']['value']["seconds"]
         self.stream_key = settings['stream_key']['value']
+        self.output_logs = settings['output_logs']['value']
 
     def send_temperature_data(self, data):
         self.conn.sendall(json.dumps({"type": "temperatures", "data": data}).encode())
 
     def send_alert(self, temperature):
         self.conn.sendall(json.dumps({"type": "alert", "data": {"temperature" : temperature}}).encode())
+
+    def send_log(self, data):
+        byte_data = data.encode('utf-8')
+        encoded = base64.b64encode(byte_data).decode('utf-8')
+        self.conn.sendall(json.dumps({"type": "log", "data": encoded}).encode())
