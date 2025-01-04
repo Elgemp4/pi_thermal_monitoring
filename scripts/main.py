@@ -84,8 +84,6 @@ def get_logs(service_name, lines=10000):
 	try:
 		#-u thermal_camera.service --no-pager -l -n 1000
 		command = ['journalctl', '-u', 'thermal_camera.service', '--no-pager', '-l', '-n', '1000']
-		#systemctl list-units --type=service --no-pager
-		#command = ['systemctl', 'list-units', '--type=service', '--no-pager']
 		result = subprocess.run(command, capture_output=True, text=True)
 		logs = result.stdout 
 		return logs
