@@ -89,8 +89,6 @@ def get_logs(service_name, lines=10000):
 		return logs
 	except Exception as e:
 		return "Error while getting logs"
-	
-	
     
 def listen_for_logs(sm: SocketManager):
 	global time_for_next_log
@@ -104,11 +102,11 @@ def listen_for_logs(sm: SocketManager):
 	except Exception as e:	
 		print(e)
 
-	try:
-		if(sm.output_logs):
-			sm.send_log("test : " + get_logs("thermal_camera.service"))
-	except Exception as e:	
-		print(e)
+	#try:
+	#	if(sm.output_logs):
+	#		sm.send_log("test : " + get_logs("thermal_camera.service"))
+	#except Exception as e:	
+	#	print(e)
 
 
 	time_for_next_log = time.time() + 10
