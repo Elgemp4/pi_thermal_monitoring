@@ -14,6 +14,9 @@ class Zone:
 		self.total_period_count = 0
 
 	def set_th_data(self, th_data):
+		if(self.bottom == self.top or self.left == self.right):
+			self.th_data = np.array([[0]])
+
 		self.th_data = th_data[self.bottom:self.top, self.left:self.right]
 
 	def compute_period(self):
